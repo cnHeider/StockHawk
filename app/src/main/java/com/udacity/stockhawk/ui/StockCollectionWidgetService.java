@@ -1,12 +1,12 @@
 package com.udacity.stockhawk.ui;
 
-import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
@@ -31,6 +31,8 @@ public class StockCollectionWidgetService extends RemoteViewsService {
 
 class StockCollectionRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
 
+  private static final String TAG = StockCollectionRemoteViewsFactory.class.getCanonicalName();
+
   private List<StockWidgetItem> mWidgetItems = new ArrayList<>();
   private Context mContext;
   private int mAppWidgetId;
@@ -46,7 +48,12 @@ class StockCollectionRemoteViewsFactory implements RemoteViewsService.RemoteView
   public void onCreate() {
 
     formatters = new Formatters();
+    loadData();
+  }
 
+  private void loadData(){
+    Log.d(TAG, "loadData: ");
+    mWidgetItems.clear();
     Cursor cursor = mContext.getContentResolver().query(Contract.Quote.URI, Contract.Quote.QUOTE_COLUMNS.toArray(new String[]{}), null, null, null);
     if (cursor.moveToFirst()){
       do{
@@ -57,12 +64,12 @@ class StockCollectionRemoteViewsFactory implements RemoteViewsService.RemoteView
       }while(cursor.moveToNext());
     }
     cursor.close();
-
   }
 
   @Override
   public void onDataSetChanged() {
-
+    Log.d(TAG, "onDataSetChanged: ");
+    loadData();
   }
 
   @Override
@@ -102,7 +109,7 @@ class StockCollectionRemoteViewsFactory implements RemoteViewsService.RemoteView
     rv.setTextViewText(R.id.price, formatters.dollarFormatWithPlus.format(price));
 
     Bundle extras = new Bundle();
-    extras.putInt(StockCollectionWidget.EXTRA_ITEM, position);
+    extras.putInt(StockCollectionWidgetProvider.EXTRA_ITEM, position);
     Intent fillInIntent = new Intent();
     fillInIntent.putExtras(extras);
     rv.setOnClickFillInIntent(R.id.stock_list_item, fillInIntent);

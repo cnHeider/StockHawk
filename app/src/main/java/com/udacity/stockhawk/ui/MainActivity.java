@@ -29,6 +29,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timber.log.Timber;
 
+import static com.udacity.stockhawk.sync.QuoteSyncJob.ACTION_DATA_UPDATED;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
                                                                SwipeRefreshLayout.OnRefreshListener,
                                                                StockAdapter.StockAdapterOnClickHandler {
@@ -58,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String message = getString(R.string.toast_stock_added_no_connectivity, symbol);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
       }
+
+      Intent dataUpdated = new Intent(ACTION_DATA_UPDATED);
+      getApplicationContext().sendBroadcast(dataUpdated);
 
       PrefUtils.addStock(this, symbol);
       QuoteSyncJob.syncImmediately(this);
@@ -101,6 +106,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String symbol = adapter.getSymbolAtPosition(viewHolder.getAdapterPosition());
         PrefUtils.removeStock(MainActivity.this, symbol);
         getContentResolver().delete(Contract.Quote.makeUriForStock(symbol), null, null);
+
+        Intent dataUpdated = new Intent(ACTION_DATA_UPDATED);
+        getApplicationContext().sendBroadcast(dataUpdated);
       }
     }).attachToRecyclerView(stockRecyclerView);
 
